@@ -8,30 +8,84 @@
 </head>
 <body>
   <div class="app">
+
     <!-- Header -->
     <header class="header">
-      <div class="header-inner">
-        <div class="logo">
-          <span class="logo-icon">🌐</span>
-          <h1>Live Translator</h1>
-        </div>
-        <p class="subtitle">Real-time speech transcription &amp; translation to English</p>
+      <div class="logo">
+        <span class="logo-icon">🌐</span>
+        <h1>Live Translator</h1>
       </div>
+      <p class="subtitle">Real-time speech transcription &amp; translation — any language → English</p>
     </header>
+
+    <!-- Language selector -->
+    <div class="lang-row">
+      <label for="langSelect" class="lang-label">Speaking language:</label>
+      <select id="langSelect" class="lang-select">
+        <option value="">🔍 Auto-detect</option>
+        <option value="af-ZA">Afrikaans</option>
+        <option value="ar-SA">Arabic (عربي)</option>
+        <option value="bn-BD">Bengali (বাংলা)</option>
+        <option value="bg-BG">Bulgarian (Български)</option>
+        <option value="ca-ES">Catalan</option>
+        <option value="zh-CN">Chinese Simplified (普通话)</option>
+        <option value="zh-TW">Chinese Traditional (繁體中文)</option>
+        <option value="hr-HR">Croatian (Hrvatski)</option>
+        <option value="cs-CZ">Czech (Čeština)</option>
+        <option value="da-DK">Danish (Dansk)</option>
+        <option value="nl-NL">Dutch (Nederlands)</option>
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="et-EE">Estonian</option>
+        <option value="fi-FI">Finnish (Suomi)</option>
+        <option value="fr-FR">French (Français)</option>
+        <option value="de-DE">German (Deutsch)</option>
+        <option value="el-GR">Greek (Ελληνικά)</option>
+        <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+        <option value="he-IL">Hebrew (עברית)</option>
+        <option value="hi-IN">Hindi (हिन्दी)</option>
+        <option value="hu-HU">Hungarian (Magyar)</option>
+        <option value="id-ID">Indonesian (Bahasa)</option>
+        <option value="it-IT">Italian (Italiano)</option>
+        <option value="ja-JP">Japanese (日本語)</option>
+        <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+        <option value="ko-KR">Korean (한국어)</option>
+        <option value="lv-LV">Latvian</option>
+        <option value="lt-LT">Lithuanian</option>
+        <option value="ms-MY">Malay (Bahasa Melayu)</option>
+        <option value="ml-IN">Malayalam (മലയാളം)</option>
+        <option value="mr-IN">Marathi (मराठी)</option>
+        <option value="nb-NO">Norwegian (Norsk)</option>
+        <option value="pl-PL">Polish (Polski)</option>
+        <option value="pt-BR">Portuguese (Português)</option>
+        <option value="ro-RO">Romanian (Română)</option>
+        <option value="ru-RU">Russian (Русский)</option>
+        <option value="sr-RS">Serbian (Српски)</option>
+        <option value="sk-SK">Slovak</option>
+        <option value="sl-SI">Slovenian</option>
+        <option value="es-ES">Spanish (Español)</option>
+        <option value="sw-KE">Swahili</option>
+        <option value="sv-SE">Swedish (Svenska)</option>
+        <option value="ta-IN">Tamil (தமிழ்)</option>
+        <option value="te-IN">Telugu (తెలుగు)</option>
+        <option value="th-TH">Thai (ภาษาไทย)</option>
+        <option value="tr-TR">Turkish (Türkçe)</option>
+        <option value="uk-UA">Ukrainian (Українська)</option>
+        <option value="ur-PK">Urdu (اردو)</option>
+        <option value="vi-VN">Vietnamese (Tiếng Việt)</option>
+      </select>
+    </div>
 
     <!-- Controls -->
     <section class="controls">
       <button id="startBtn" class="btn btn-primary">
-        <span class="btn-icon">🎤</span>
-        Start Listening
+        <span class="btn-icon">🎤</span> Start Listening
       </button>
       <button id="stopBtn" class="btn btn-danger" disabled>
-        <span class="btn-icon">⏹</span>
-        Stop
+        <span class="btn-icon">⏹</span> Stop
       </button>
       <button id="clearBtn" class="btn btn-secondary">
-        <span class="btn-icon">🗑</span>
-        Clear
+        <span class="btn-icon">🗑</span> Clear
       </button>
     </section>
 
@@ -39,31 +93,25 @@
     <div class="status-bar">
       <div id="statusDot" class="status-dot"></div>
       <span id="statusText">Ready — click Start to begin</span>
-      <div id="audioMeter" class="audio-meter">
-        <div id="audioMeterFill" class="audio-meter-fill"></div>
-      </div>
     </div>
 
-    <!-- Results area -->
-    <main class="results-area">
-      <!-- Live chunk being processed -->
-      <div id="processingBanner" class="processing-banner hidden">
-        <span class="spinner"></span> Processing speech…
-      </div>
+    <!-- Interim display — live text as you speak -->
+    <div id="interimBox" class="interim-box hidden">
+      <span class="interim-label">Listening…</span>
+      <span id="interimText" class="interim-text"></span>
+    </div>
 
-      <!-- Transcript feed -->
-      <div id="feed" class="feed">
-        <div class="feed-empty">
-          <span class="feed-empty-icon">🎙️</span>
-          <p>Your live transcriptions will appear here.</p>
-          <p class="feed-empty-hint">Speak in any language — translations appear instantly.</p>
-        </div>
+    <!-- Results feed -->
+    <main id="feed" class="feed">
+      <div class="feed-empty">
+        <span class="feed-empty-icon">🎙️</span>
+        <p>Transcriptions and translations appear here.</p>
+        <p class="feed-empty-hint">Works best in Chrome / Edge. Speak naturally — pauses trigger translation.</p>
       </div>
     </main>
 
-    <!-- Info footer -->
     <footer class="footer">
-      <span>Powered by <strong>Whisper</strong> (speech recognition) &amp; <strong>Claude Opus 4.6</strong> (translation)</span>
+      Transcription: <strong>Web Speech API</strong> &nbsp;·&nbsp; Translation: <strong>Claude Opus 4.6</strong>
     </footer>
   </div>
 
