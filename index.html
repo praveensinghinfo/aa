@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Live Translator — Any Language → English</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3347;
+  --accent:#5b6ef8;--accent2:#38bdf8;--green:#22c55e;--red:#ef4444;
+  --yellow:#f59e0b;--text:#e2e8f0;--muted:#8892a4;--r:14px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  line-height:1.6;-webkit-text-size-adjust:100%}
+body{display:flex;justify-content:center;padding:0 16px 60px}
+.app{width:100%;max-width:800px;display:flex;flex-direction:column;gap:16px;padding-top:28px}
+
+/* Header */
+.header{text-align:center}
+.logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.logo-icon{font-size:1.8rem}
+.logo h1{font-size:1.8rem;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--muted);font-size:.9rem}
+
+/* API Key setup */
+.api-setup{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+.api-setup h2{font-size:.95rem;font-weight:600;margin-bottom:4px}
+.api-setup p{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.api-row{display:flex;gap:8px}
+.api-input{flex:1;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:8px;padding:10px 14px;font-size:.9rem;
+  outline:none;-webkit-appearance:none}
+.api-input:focus{border-color:var(--accent)}
+.api-input::placeholder{color:var(--muted)}
+
+/* Language */
+.lang-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lang-label{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.lang-select{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);border-radius:8px;padding:10px 14px;font-size:.9rem;
+  cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238892a4' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.lang-select:focus{border-color:var(--accent)}
+
+/* Controls */
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 22px;border:none;border-radius:var(--r);
+  font-size:.95rem;font-weight:600;cursor:pointer;
+  transition:opacity .15s,transform .1s;letter-spacing:.01em;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn:hover:not(:disabled){opacity:.85;transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-icon{font-size:1.15rem}
+.btn-primary{background:var(--accent);color:#fff;flex:1}
+.btn-danger{background:var(--red);color:#fff;flex:1}
+.btn-secondary{background:var(--surface2);color:var(--text);
+  border:1px solid var(--border)}
+
+/* Status */
+.status-bar{display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:10px 16px;font-size:.875rem;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s}
+.dot.listening{background:var(--green);box-shadow:0 0 7px var(--green);animation:pulse 1.5s infinite}
+.dot.processing{background:var(--yellow);box-shadow:0 0 7px var(--yellow)}
+.dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Interim */
+.interim-box{background:rgba(91,110,248,.08);border:1px solid rgba(91,110,248,.25);
+  border-radius:var(--r);padding:12px 18px;font-size:.9rem;
+  display:flex;align-items:center;gap:10px;min-height:46px}
+.interim-box.hidden{display:none}
+.interim-label{font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--accent2);white-space:nowrap}
+.interim-text{color:var(--text);font-style:italic}
+
+/* Feed */
+.feed{flex:1;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;overflow-y:auto;min-height:320px;
+  display:flex;flex-direction:column;gap:12px}
+.feed-empty{margin:auto;text-align:center;color:var(--muted)}
+.feed-empty-icon{font-size:2.8rem;display:block;margin-bottom:10px}
+.feed-empty-hint{font-size:.82rem;margin-top:4px}
+
+/* Cards */
+.card{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 18px;animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:999px;font-size:.72rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em}
+.badge.en{background:rgba(34,197,94,.15);color:#4ade80}
+.badge.xx{background:rgba(56,189,248,.15);color:var(--accent2)}
+.card-time{margin-left:auto;font-size:.72rem;color:var(--muted)}
+.blk-label{display:block;font-size:.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.orig{font-size:.9rem;line-height:1.7;color:var(--muted);font-style:italic;margin-bottom:10px}
+.orig .blk-label{color:rgba(138,150,170,.5)}
+.trans{font-size:.95rem;line-height:1.7;color:var(--text);font-weight:500}
+.trans .blk-label{color:var(--accent2)}
+.divider{border:none;border-top:1px solid var(--border);margin:10px 0}
+.err-card{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--r);padding:12px 16px;color:#fca5a5;
+  font-size:.875rem;animation:slideIn .25s ease}
+
+/* Spinner */
+.spinner{display:inline-block;width:15px;height:15px;
+  border:2px solid rgba(56,189,248,.3);border-top-color:var(--accent2);
+  border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Footer */
+.footer{text-align:center;color:var(--muted);font-size:.78rem}
+.footer strong{color:var(--text)}
+
+/* Safari-specific fixes */
+@supports (-webkit-touch-callout:none){
+  .btn{padding:14px 22px}
+  select{background-color:var(--surface)!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="logo"><span class="logo-icon">🌐</span><h1>Live Translator</h1></div>
+    <p class="subtitle">Any language → English, live in your browser</p>
+  </header>
+
+  <!-- API Key -->
+  <div class="api-setup" id="apiSetup">
+    <h2>🔑 Anthropic API Key</h2>
+    <p>Saved locally in your browser — never sent anywhere except api.anthropic.com</p>
+    <div class="api-row">
+      <input id="apiKeyInput" class="api-input" type="password"
+        placeholder="sk-ant-..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="btn btn-primary" style="flex:0;padding:10px 18px" onclick="saveKey()">Save</button>
+    </div>
+    <p id="keyStatus" style="margin-top:8px;font-size:.8rem;color:var(--muted)"></p>
+  </div>
+
+  <!-- Language -->
+  <div class="lang-row">
+    <span class="lang-label">Speaking language:</span>
+    <select id="langSelect" class="lang-select">
+      <option value="">Auto-detect</option>
+      <option value="ar-SA">Arabic (عربي)</option>
+      <option value="bn-BD">Bengali (বাংলা)</option>
+      <option value="bg-BG">Bulgarian</option>
+      <option value="zh-CN">Chinese (普通话)</option>
+      <option value="zh-TW">Chinese Traditional (繁體)</option>
+      <option value="hr-HR">Croatian</option>
+      <option value="cs-CZ">Czech</option>
+      <option value="da-DK">Danish</option>
+      <option value="nl-NL">Dutch</option>
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="fi-FI">Finnish</option>
+      <option value="fr-FR">French (Français)</option>
+      <option value="de-DE">German (Deutsch)</option>
+      <option value="el-GR">Greek</option>
+      <option value="he-IL">Hebrew</option>
+      <option value="hi-IN">Hindi (हिन्दी)</option>
+      <option value="hu-HU">Hungarian</option>
+      <option value="id-ID">Indonesian</option>
+      <option value="it-IT">Italian</option>
+      <option value="ja-JP">Japanese (日本語)</option>
+      <option value="ko-KR">Korean (한국어)</option>
+      <option value="ms-MY">Malay</option>
+      <option value="nb-NO">Norwegian</option>
+      <option value="fa-IR">Persian (فارسی)</option>
+      <option value="pl-PL">Polish</option>
+      <option value="pt-BR">Portuguese (Português)</option>
+      <option value="ro-RO">Romanian</option>
+      <option value="ru-RU">Russian (Русский)</option>
+      <option value="es-ES">Spanish (Español)</option>
+      <option value="es-MX">Spanish (México)</option>
+      <option value="sv-SE">Swedish</option>
+      <option value="ta-IN">Tamil (தமிழ்)</option>
+      <option value="th-TH">Thai</option>
+      <option value="tr-TR">Turkish</option>
+      <option value="uk-UA">Ukrainian</option>
+      <option value="ur-PK">Urdu (اردو)</option>
+      <option value="vi-VN">Vietnamese</option>
+    </select>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="startBtn" class="btn btn-primary" onclick="startListening()">
+      <span class="btn-icon">🎤</span> Start Listening
+    </button>
+    <button id="stopBtn" class="btn btn-danger" disabled onclick="stopListening()">
+      <span class="btn-icon">⏹</span> Stop
+    </button>
+    <button class="btn btn-secondary" onclick="clearFeed()">
+      <span class="btn-icon">🗑</span>
+    </button>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div id="dot" class="dot"></div>
+    <span id="statusText">Enter your API key above, then tap Start</span>
+  </div>
+
+  <!-- Interim -->
+  <div id="interimBox" class="interim-box hidden">
+    <span class="interim-label">Listening…</span>
+    <span id="interimText" class="interim-text"></span>
+  </div>
+
+  <!-- Feed -->
+  <div id="feed" class="feed">
+    <div class="feed-empty" id="feedEmpty">
+      <span class="feed-empty-icon">🎙️</span>
+      <p>Transcriptions &amp; translations appear here.</p>
+      <p class="feed-empty-hint">Works on iPhone with iOS 15+. Pause naturally to trigger translation.</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <strong>Web Speech API</strong> transcription · <strong>Claude Opus 4.6</strong> translation
+  </footer>
+
+</div>
+<script>
+// ── API Key ───────────────────────────────────────
+let apiKey = localStorage.getItem('anthropic_api_key') || '';
+const apiSetup = document.getElementById('apiSetup');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const keyStatus = document.getElementById('keyStatus');
+
+function initKeyUI() {
+  if (apiKey) {
+    apiKeyInput.value = apiKey;
+    keyStatus.textContent = '✓ Key saved. You can update it anytime.';
+    keyStatus.style.color = 'var(--green)';
+  }
+}
+function saveKey() {
+  const k = apiKeyInput.value.trim();
+  if (!k.startsWith('sk-ant')) {
+    keyStatus.textContent = '⚠ Key should start with sk-ant-…';
+    keyStatus.style.color = 'var(--yellow)';
+    return;
+  }
+  apiKey = k;
+  localStorage.setItem('anthropic_api_key', k);
+  keyStatus.textContent = '✓ Saved!';
+  keyStatus.style.color = 'var(--green)';
+  setStatus('', 'API key saved — tap Start Listening');
+}
+initKeyUI();
+
+// ── Status ────────────────────────────────────────
+const dot = document.getElementById('dot');
+const statusText = document.getElementById('statusText');
+function setStatus(state, msg) {
+  dot.className = 'dot ' + state;
+  statusText.textContent = msg;
+}
+
+// ── Speech Recognition ────────────────────────────
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let running = false;
+let translating = false;
+
+const startBtn = document.getElementById('startBtn');
+const stopBtn  = document.getElementById('stopBtn');
+const interimBox  = document.getElementById('interimBox');
+const interimText = document.getElementById('interimText');
+
+if (!SR) {
+  setStatus('error', '⚠ Speech recognition not supported on this browser/OS version');
+  document.getElementById('startBtn').disabled = true;
+}
+
+function buildRec() {
+  const rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = document.getElementById('langSelect').value;
+
+  rec.onstart = () => {
+    setStatus('listening', 'Listening — speak now');
+    interimBox.classList.remove('hidden');
+  };
+  rec.onend = () => {
+    if (running) { try { rec.start(); } catch(_){} }
+    else {
+      interimBox.classList.add('hidden');
+      interimText.textContent = '';
+    }
+  };
+  rec.onerror = e => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    setStatus('error', 'Mic error: ' + e.error);
+  };
+  rec.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        const text = e.results[i][0].transcript.trim();
+        if (text) sendToTranslate(text);
+        interimText.textContent = '';
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+    interimText.textContent = interim;
+  };
+  return rec;
+}
+
+function startListening() {
+  if (!SR) return;
+  if (!apiKey) {
+    setStatus('error', 'Please save your API key first');
+    apiKeyInput.focus();
+    return;
+  }
+  running = true;
+  startBtn.disabled = true;
+  stopBtn.disabled  = false;
+  recognition = buildRec();
+  try { recognition.start(); }
+  catch(e) { setStatus('error', e.message); stopListening(); }
+}
+
+function stopListening() {
+  running = false;
+  if (recognition) { try { recognition.stop(); } catch(_){} recognition = null; }
+  interimBox.classList.add('hidden');
+  interimText.textContent = '';
+  startBtn.disabled = false;
+  stopBtn.disabled  = true;
+  setStatus('', 'Stopped — tap Start to resume');
+}
+
+document.getElementById('langSelect').addEventListener('change', () => {
+  if (!running || !recognition) return;
+  try { recognition.stop(); } catch(_){}
+  recognition = buildRec();
+  try { recognition.start(); } catch(_){}
+});
+
+// ── Translate via Anthropic API ───────────────────
+async function sendToTranslate(text) {
+  if (translating) return; // debounce
+  translating = true;
+  if (running) setStatus('processing', 'Translating…');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-6',
+        max_tokens: 512,
+        system: 'You are a translation assistant. Respond with a JSON object only — no markdown. Schema: {"source_language_name":"<English name of detected language>","is_english":<true|false>,"translation":"<English text>"}',
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    let raw = data.content?.[0]?.text || '';
+    // Strip markdown fences if present
+    raw = raw.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch(_) { parsed = { source_language_name: 'Unknown', is_english: false, translation: raw }; }
+
+    renderCard(text, parsed);
+  } catch(e) {
+    renderError(e.message);
+  } finally {
+    translating = false;
+    if (running) setStatus('listening', 'Listening — speak now');
+  }
+}
+
+// ── Render ────────────────────────────────────────
+const feed = document.getElementById('feed');
+function clearEmpty() {
+  const el = document.getElementById('feedEmpty');
+  if (el) el.remove();
+}
+function renderCard(original, result) {
+  clearEmpty();
+  const { source_language_name, is_english, translation } = result;
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const card = document.createElement('div');
+  card.className = 'card';
+  if (is_english) {
+    card.innerHTML = `
+      <div class="card-meta">
+        <span class="badge en">🇺🇸 English</span>
+        <span class="card-time">${time}</span>
+      </div>
+      <div class="trans"><span class="blk-label">Transcription</span>${esc(original)}</div>`;
+  } else {
+    card.innerHTML = `
+      <div class="card-meta">
+        <span class="badge xx">🗣 ${esc(source_language_name)}</span>
+        <span class="card-time">${time}</span>
+      </div>
+      <div class="orig"><span class="blk-label">Original (${esc(source_language_name)})</span>${esc(original)}</div>
+      <hr class="divider"/>
+      <div class="trans"><span class="blk-label">English Translation</span>${esc(translation)}</div>`;
+  }
+  feed.appendChild(card);
+  feed.scrollTop = feed.scrollHeight;
+}
+function renderError(msg) {
+  clearEmpty();
+  const c = document.createElement('div');
+  c.className = 'err-card';
+  c.textContent = '⚠ ' + msg;
+  feed.appendChild(c);
+  feed.scrollTop = feed.scrollHeight;
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+function clearFeed() {
+  feed.innerHTML = `<div class="feed-empty" id="feedEmpty">
+    <span class="feed-empty-icon">🎙️</span>
+    <p>Transcriptions &amp; translations appear here.</p>
+    <p class="feed-empty-hint">Works on iPhone with iOS 15+. Pause naturally to trigger translation.</p>
+  </div>`;
+}
+</script>
+</body>
+</html>
