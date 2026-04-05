@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Translation & Transcription</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">🌐</span>
+          <h1>Live Translator</h1>
+        </div>
+        <p class="subtitle">Real-time speech transcription &amp; translation to English</p>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="controls">
+      <button id="startBtn" class="btn btn-primary">
+        <span class="btn-icon">🎤</span>
+        Start Listening
+      </button>
+      <button id="stopBtn" class="btn btn-danger" disabled>
+        <span class="btn-icon">⏹</span>
+        Stop
+      </button>
+      <button id="clearBtn" class="btn btn-secondary">
+        <span class="btn-icon">🗑</span>
+        Clear
+      </button>
+    </section>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText">Ready — click Start to begin</span>
+      <div id="audioMeter" class="audio-meter">
+        <div id="audioMeterFill" class="audio-meter-fill"></div>
+      </div>
+    </div>
+
+    <!-- Results area -->
+    <main class="results-area">
+      <!-- Live chunk being processed -->
+      <div id="processingBanner" class="processing-banner hidden">
+        <span class="spinner"></span> Processing speech…
+      </div>
+
+      <!-- Transcript feed -->
+      <div id="feed" class="feed">
+        <div class="feed-empty">
+          <span class="feed-empty-icon">🎙️</span>
+          <p>Your live transcriptions will appear here.</p>
+          <p class="feed-empty-hint">Speak in any language — translations appear instantly.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Info footer -->
+    <footer class="footer">
+      <span>Powered by <strong>Whisper</strong> (speech recognition) &amp; <strong>Claude Opus 4.6</strong> (translation)</span>
+    </footer>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
